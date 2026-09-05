@@ -1,0 +1,12 @@
+{
+  "name": "drishti-webapp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Drishti (SIH26171) — privacy-preserving browser vision agent demo, deployable as a static site + serverless API on Vercel.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}

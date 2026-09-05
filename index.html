@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="/icons/icon48.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drishti — On-device Visual Perception for Lightweight Browser Agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #090D17;
+    --panel: #10182A;
+    --panel-2: #0C1220;
+    --card: #0E1626;
+    --line: #202D45;
+    --line-soft: #182236;
+    --text: #E9EEF7;
+    --muted: #7C8AA3;
+    --muted-dim: #57647E;
+    --cyan: #4FD8C4;
+    --cyan-dim: rgba(79,216,196,0.14);
+    --amber: #F0A93A;
+    --amber-dim: rgba(240,169,58,0.16);
+    --page-top: #0B1120;
+    --page-bottom: #090D17;
+    --field-bg: #0A0F1D;
+    --field-line: #263353;
+    --button-text: #04231D;
+    --disabled-bg: #1B2440;
+    --shadow: rgba(0,0,0,0.6);
+    --shadow-soft: rgba(0,0,0,0.5);
+    --danger-bg: #050810;
+    --redacted-bg: #0E1E25;
+  }
+  html[data-theme="light"]{
+    --bg: #F4F7FA;
+    --panel: #FFFFFF;
+    --panel-2: #EEF3F7;
+    --card: #F8FAFC;
+    --line: #D6E0E8;
+    --line-soft: #E3EAF0;
+    --text: #16202B;
+    --muted: #607084;
+    --muted-dim: #8796A7;
+    --cyan: #168F7E;
+    --cyan-dim: rgba(22,143,126,0.12);
+    --amber: #B86B00;
+    --amber-dim: rgba(184,107,0,0.13);
+    --page-top: #FFFFFF;
+    --page-bottom: #F2F6F9;
+    --field-bg: #FFFFFF;
+    --field-line: #C8D4DE;
+    --button-text: #FFFFFF;
+    --disabled-bg: #DDE5EC;
+    --shadow: rgba(34,55,70,0.16);
+    --shadow-soft: rgba(34,55,70,0.10);
+    --danger-bg: #E8EDF1;
+    --redacted-bg: #DCEAE8;
+  }
+  *{box-sizing:border-box;}
+  .brand-eye{color:var(--cyan);}
+  .cursor-icon{color:var(--amber);}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  .display{font-family:'Space Grotesk','Inter',sans-serif;}
+  body{background-image:radial-gradient(circle at 18% 0%, var(--cyan-dim), transparent 45%);transition:background-color .25s,color .25s;}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:52px 28px 84px;}
+
+  header.top{display:flex;align-items:flex-start;justify-content:space-between;
+    margin-bottom:40px;flex-wrap:wrap;gap:18px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+   .brand-logo-wrap{width:58px;height:58px;flex:0 0 58px;display:flex;align-items:center;justify-content:center;border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(0,0,0,.12));border:1px solid var(--line);box-shadow:0 10px 26px -14px var(--cyan), inset 0 0 20px rgba(0,220,255,.05);overflow:hidden;}
+  .brand-logo{width:50px;height:50px;object-fit:contain;display:block;filter:drop-shadow(0 0 8px rgba(73,222,255,.28));}
+  @media (max-width:600px){.wrap{padding:28px 16px 60px;} header.top{margin-bottom:28px;} .brand-logo-wrap{width:50px;height:50px;flex-basis:50px;border-radius:14px;} .brand-logo{width:43px;height:43px;} .brand h1{font-size:24px;} .brand-text .san{font-size:11px;} .tagline{font-size:12.5px;} }
+.brand h1{font-size:29px;margin:0;letter-spacing:-0.01em;font-weight:600;}
+  .brand-text .san{color:var(--cyan);font-size:13px;font-weight:400;display:block;margin-top:2px;letter-spacing:0.01em;}
+  .tagline{color:var(--muted);font-size:13.5px;max-width:420px;line-height:1.55;margin-top:9px;}
+
+  .chip{display:inline-flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line);
+    border-radius:20px;padding:7px 14px;font-size:11.5px;color:var(--muted);white-space:nowrap;}
+  .chip b{color:var(--text);font-weight:600;}
+  .chip .sep{color:var(--line);}
+
+  .stage{display:grid;grid-template-columns:1.5fr 1fr;gap:22px;align-items:start;}
+  @media (max-width:880px){.stage{grid-template-columns:1fr;}}
+
+  /* ---- Browser mock ---- */
+  .browser{transition:background .25s,border-color .25s,color .25s; background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;
+    box-shadow:0 20px 50px -25px var(--shadow);}
+
+  .chrome-top{display:flex;align-items:flex-end;gap:8px;padding:11px 12px 0;background:var(--panel-2);}
+  .traffic{display:flex;gap:6px;padding-bottom:11px;flex-shrink:0;}
+  .traffic i{width:9px;height:9px;border-radius:50%;display:block;}
+  .traffic i:nth-child(1){background:#C9635A;}
+  .traffic i:nth-child(2){background:#C7A155;}
+  .traffic i:nth-child(3){background:#5BA579;}
+  .tab{background:var(--panel);border:1px solid var(--line);border-bottom:none;border-radius:8px 8px 0 0;
+    padding:8px 10px 8px 11px;display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted);
+    max-width:230px;}
+  .tab .favicon{width:8px;height:8px;border-radius:2px;background:var(--cyan);flex-shrink:0;}
+  .tab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .tab .close{margin-left:auto;color:var(--muted-dim);font-size:13px;line-height:1;}
+
+  .chrome-bottom{display:flex;align-items:center;gap:12px;padding:9px 14px;background:var(--panel);
+    border-bottom:1px solid var(--line);}
+  .nav-ic{display:flex;gap:10px;color:var(--muted-dim);font-size:13px;flex-shrink:0;}
+  .urlbar{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:7px;
+    padding:6px 12px;font-size:11.5px;color:var(--muted);font-family:'SF Mono',monospace;
+    display:flex;align-items:center;gap:7px;overflow:hidden;}
+  .urlbar .lock{color:var(--muted-dim);font-size:10px;flex-shrink:0;}
+  .urlbar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .star{color:var(--muted-dim);font-size:13px;flex-shrink:0;}
+
+  .page{position:relative;min-height:480px;max-height:560px;overflow-y:auto;
+    background:linear-gradient(180deg,var(--page-top) 0%,var(--page-bottom) 100%);}
+  .page::-webkit-scrollbar{width:8px;}
+  .page::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+
+  .scan-line{position:absolute;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+    opacity:0;top:0;z-index:6;}
+  .scan-line.run{animation:scan 1.15s ease-in-out;}
+  @keyframes scan{0%{opacity:0;top:0;}12%{opacity:1;}88%{opacity:1;}100%{opacity:0;top:100%;}}
+
+  .site-nav{display:flex;align-items:center;justify-content:space-between;padding:15px 24px;
+    border-bottom:1px solid var(--line-soft);}
+  .site-logo{font-size:13px;font-weight:700;letter-spacing:0.02em;color:var(--text);}
+  .site-logo b{color:var(--cyan);}
+  .site-links{display:flex;gap:20px;font-size:11.5px;color:var(--muted);}
+  .login-pill{border:1px solid var(--line);border-radius:20px;padding:5px 13px;font-size:11px;color:var(--muted);}
+
+  .card-wrap{padding:24px;}
+  .search-card{background:var(--card);border:1px solid var(--line-soft);border-radius:11px;padding:22px;
+    box-shadow:0 12px 30px -20px rgba(0,0,0,0.5);}
+  .search-card h2{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:600;margin:0 0 4px;}
+  .search-card .p-sub{color:var(--muted);font-size:12px;margin:0 0 20px;}
+
+  .row-2{display:grid;grid-template-columns:1fr 34px 1fr;gap:8px;margin-bottom:12px;}
+  .row-2b{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+  .swap{display:flex;align-items:flex-end;justify-content:center;padding-bottom:2px;}
+  .swap-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--panel-2);
+    display:flex;align-items:center;justify-content:center;color:var(--muted-dim);font-size:12px;}
+
+  .field label{display:block;font-size:10.5px;color:var(--muted);margin-bottom:6px;
+    text-transform:uppercase;letter-spacing:0.04em;}
+  .field .box{background:var(--field-bg);border:1px solid var(--field-line);border-radius:7px;padding:10px 12px;
+    font-size:13px;color:var(--text);position:relative;font-weight:500;}
+  .field .box.empty{color:var(--muted-dim);font-weight:400;}
+  .field .box.select{display:flex;justify-content:space-between;align-items:center;}
+  .field .box.select .chev{color:var(--muted-dim);font-size:10px;}
+
+  .btn-primary{display:block;width:100%;background:linear-gradient(180deg,#3AA391,#2C8879);
+    border:none;color:var(--button-text);font-size:13.5px;font-weight:700;padding:12px;border-radius:8px;
+    text-align:center;cursor:default;}
+
+  .results{max-height:0;overflow:hidden;opacity:0;transition:max-height .5s ease, opacity .4s ease;margin-top:0;}
+  .results.show{max-height:400px;opacity:1;margin-top:18px;}
+  .results .r-label{font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em;}
+  .train-card{background:var(--card);border:1px solid var(--line-soft);border-radius:9px;padding:14px 16px;
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;
+    opacity:0;transform:translateY(6px);transition:opacity .35s ease, transform .35s ease;}
+  .train-card.in{opacity:1;transform:translateY(0);}
+  .train-card .tc-name{font-size:12.5px;font-weight:600;}
+  .train-card .tc-time{font-size:11px;color:var(--muted);margin-top:3px;}
+  .train-card .tc-right{text-align:right;}
+  .train-card .tc-price{font-size:13px;font-weight:700;color:var(--cyan);}
+  .train-card .tc-avail{font-size:10.5px;color:var(--muted);margin-top:2px;}
+
+  /* detection overlay */
+  .det{position:absolute;border:1.5px solid var(--cyan);border-radius:6px;pointer-events:none;
+    opacity:0;transition:opacity .3s ease, border-color .2s ease, box-shadow .2s ease;
+    box-shadow:0 0 0 3px var(--cyan-dim);z-index:5;}
+  .det.show{opacity:1;}
+  .det.dim{opacity:0.28;}
+  .det .tag{position:absolute;top:-19px;left:-1px;background:var(--cyan);color:var(--button-text);
+    font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px 4px 4px 0;letter-spacing:0.01em;
+    font-family:'SF Mono',monospace;white-space:nowrap;}
+  .det.active{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-dim), 0 0 16px rgba(240,169,58,0.3);}
+  .det.active .tag{background:var(--amber);}
+
+  .cursor{position:absolute;width:16px;height:16px;opacity:0;
+    transition:top .5s cubic-bezier(.4,0,.2,1), left .5s cubic-bezier(.4,0,.2,1), opacity .2s;
+    z-index:7;pointer-events:none;}
+  .cursor.show{opacity:1;}
+  .cursor svg{filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));}
+
+  .perf-strip{display:flex;border-top:1px solid var(--line);background:var(--panel-2);}
+  .perf-cell{flex:1;padding:12px 16px;border-right:1px solid var(--line);}
+  .perf-cell:last-child{border-right:none;}
+  .perf-cell .k{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;}
+  .perf-cell .v{font-size:14.5px;font-weight:600;font-family:'Space Grotesk',sans-serif;}
+  .perf-cell .v.cyan{color:var(--cyan);}
+
+  /* ---- Agent panel ---- */
+  .agent{transition:background .25s,border-color .25s,color .25s; background:var(--panel);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;
+    box-shadow:0 20px 50px -25px var(--shadow);}
+  .agent-head{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+  .agent-head .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);}
+  .status-row{display:flex;align-items:center;gap:9px;}
+  .status-pill{font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid var(--line);color:var(--muted);}
+  .status-pill.running{color:var(--amber);border-color:rgba(240,169,58,0.35);background:var(--amber-dim);}
+  .status-pill.done{color:var(--cyan);border-color:rgba(79,216,196,0.35);background:var(--cyan-dim);}
+  .timer{font-size:11px;color:var(--muted-dim);font-family:'SF Mono',monospace;min-width:52px;text-align:right;}
+
+  .task-row{padding:15px 18px;border-bottom:1px solid var(--line);}
+  .task-row .k{font-size:10.5px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;}
+  .task-row .task{font-size:13.5px;font-weight:500;line-height:1.4;}
+
+  .steps{padding:8px;flex:1;min-height:300px;}
+  .step{display:flex;gap:11px;padding:11px 10px;border-radius:8px;opacity:0.32;transition:opacity .3s, background .3s;}
+  .step.active{opacity:1;background:rgba(79,216,196,0.05);}
+  .step.done{opacity:1;}
+  .step .num{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--field-line);display:flex;
+    align-items:center;justify-content:center;font-size:10px;color:var(--muted);flex-shrink:0;margin-top:1px;
+    font-family:'SF Mono',monospace;transition:all .2s;}
+  .step.done .num{border-color:var(--cyan);color:var(--button-text);background:var(--cyan);}
+  .step.active .num{border-color:var(--amber);color:var(--amber);}
+  .step .body .t{font-size:12.5px;line-height:1.4;}
+  .step .body .m{font-size:10.5px;color:var(--muted-dim);margin-top:2px;font-family:'SF Mono',monospace;}
+
+  .ctrl{padding:14px 18px;border-top:1px solid var(--line);display:flex;gap:10px;}
+  button.run{flex:1;background:var(--cyan);color:var(--button-text);border:none;border-radius:8px;padding:11px;
+    font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s,transform .1s;}
+  button.run:hover:not(:disabled){opacity:0.9;}
+  button.run:active:not(:disabled){transform:scale(0.98);}
+  button.run:disabled{background:var(--disabled-bg);color:var(--muted-dim);cursor:not-allowed;}
+  button.reset{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;
+    padding:11px 15px;font-size:12.5px;cursor:pointer;transition:color .15s,border-color .15s;}
+  button.reset:hover:not(:disabled){color:var(--text);border-color:#33456B;}
+  button.reset:disabled{opacity:0.4;cursor:not-allowed;}
+  button.run:focus-visible, button.reset:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
+
+  /* ---- architecture strip ---- */
+  .arch{transition:background .25s,border-color .25s,color .25s;margin-top:26px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:26px;}
+  .arch h3{font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--muted);
+    text-transform:uppercase;letter-spacing:0.06em;font-size:10.5px;margin:0 0 20px;}
+  .pipeline{display:flex;align-items:stretch;flex-wrap:wrap;}
+  .pl-node{flex:1;min-width:150px;padding:16px 18px;border:1px solid var(--line);position:relative;}
+  .pl-node:not(:last-child){border-right:none;}
+  .pl-node:first-child{border-radius:9px 0 0 9px;}
+  .pl-node:last-child{border-radius:0 9px 9px 0;}
+  .pl-node .n{font-size:10px;color:var(--cyan);font-family:'SF Mono',monospace;margin-bottom:9px;}
+  .pl-node .t{font-size:13px;font-weight:600;margin-bottom:6px;}
+  .pl-node .d{font-size:11.5px;color:var(--muted);line-height:1.55;}
+  .arrow{display:flex;align-items:center;padding:0 2px;color:var(--field-line);font-size:15px;}
+  @media (max-width:880px){.pipeline{flex-direction:column;}.pl-node{border-right:1px solid var(--line)!important;border-radius:9px!important;margin-bottom:2px;}.arrow{display:none;}}
+
+  footer{margin-top:32px;display:flex;justify-content:center;}
+  @media (prefers-reduced-motion: reduce){
+    .scan-line, .cursor, .det, .train-card{transition:none!important;animation:none!important;}
+  }
+
+  /* ---- privacy layer ---- */
+  .privacy-bar{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:12px 15px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .privacy-title{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+  .privacy-sub{font-size:10.5px;color:var(--muted);margin-top:3px;}
+  .privacy-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end;}
+  .mode{font-size:9px;font-family:'SF Mono',monospace;padding:5px 8px;border:1px solid var(--line);
+    border-radius:5px;color:var(--muted-dim);}
+  .mode.active{color:var(--cyan);border-color:rgba(79,216,196,.35);background:var(--cyan-dim);}
+  .privacy-state{font-size:9px;color:var(--cyan);font-family:'SF Mono',monospace;}
+  .privacy-demo{margin-top:16px;border:1px solid var(--line);border-radius:8px;background:var(--field-bg);overflow:hidden;}
+  .privacy-demo-head{display:flex;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--line);
+    font:9px 'SF Mono',monospace;color:var(--muted);}
+  .privacy-item{display:grid;grid-template-columns:70px 1fr auto;gap:8px;align-items:center;padding:7px 10px;
+    border-bottom:1px solid rgba(32,45,69,.65);font-size:10px;}
+  .pi-label{color:var(--muted);}
+  .pi-value{font-family:'SF Mono',monospace;color:var(--text);transition:.3s;}
+  .pi-badge{font:8px 'SF Mono',monospace;color:var(--amber);border:1px solid rgba(240,169,58,.3);
+    padding:2px 4px;border-radius:3px;}
+  .pi-badge.critical{color:#F07D7D;border-color:rgba(240,125,125,.3);}
+  .privacy-item.redacted .pi-value{background:var(--danger-bg);color:var(--danger-bg);border-radius:2px;}
+  .privacy-item.redacted .pi-value:after{content:'REDACTED';color:var(--cyan);background:var(--redacted-bg);padding:1px 4px;
+    border-radius:3px;font-size:8px;}
+  .sanitized{padding:8px 10px;font:9px 'SF Mono',monospace;color:var(--muted-dim);}
+  .sanitized.safe{color:var(--cyan);background:var(--cyan-dim);}
+  .privacy-demo.scan{box-shadow:0 0 0 2px var(--cyan-dim);}
+  @media (max-width:880px){.privacy-bar{align-items:flex-start;flex-direction:column;}.privacy-controls{justify-content:flex-start;}}
+
+/* ===== Modern synchronized theme system ===== */
+:root{
+  --bg:#0A0E1A; --panel:#131A2C; --panel-2:#0F1526; --card:#151D33;
+  --line:#28324A; --text:#E9EFFB; --muted:#8C9AB4; --muted-dim:#5E6B85;
+  --cyan:#6FE0CE; --cyan-dim:rgba(111,224,206,.13);
+  --amber:#F0BB7E; --amber-dim:rgba(240,187,126,.14);
+  --red:#F2879A; --red-dim:rgba(242,135,154,.13);
+  --page-top:#0D1424; --page-bottom:#0A0E1A;
+  --field-bg:#0D1322; --field-line:#2E3A56; --button-text:#0A2A26;
+  --disabled-bg:#1D2740; --shadow:rgba(4,8,20,.5);
+  --shadow-soft:rgba(4,8,20,.28); --danger-bg:#0B111E; --redacted-bg:#132824;
+}
+html[data-theme="light"]{
+  --bg:#F5F7FB; --panel:#FFFFFF; --panel-2:#F0F3F8; --card:#FAFBFD;
+  --line:#DDE3EC; --text:#1B2434; --muted:#66738A; --muted-dim:#93A0B4;
+  --cyan:#1E9C88; --cyan-dim:rgba(30,156,136,.10);
+  --amber:#B27A2E; --amber-dim:rgba(178,122,46,.10);
+  --red:#CC5470; --red-dim:rgba(204,84,112,.09);
+  --page-top:#FFFFFF; --page-bottom:#F3F6F9;
+  --field-bg:#FFFFFF; --field-line:#D2DAE4; --button-text:#FFFFFF;
+  --disabled-bg:#E3E8EE; --shadow:rgba(30,42,60,.12);
+  --shadow-soft:rgba(30,42,60,.07); --danger-bg:#EEF1F5; --redacted-bg:#E4EFEC;
+}
+html,body{background:var(--bg);color:var(--text);transition:background .25s ease,color .25s ease}
+body{background-image:radial-gradient(circle at 18% 0%,var(--cyan-dim),transparent 43%)}
+.panel,.browser,.agent,.arch,.metric,.chip,.privacy-bar,.step,.task,.privacy-demo,.theme-switcher{
+  transition:background .25s ease,border-color .25s ease,color .25s ease,box-shadow .25s ease
+}
+.theme-switcher{
+  display:flex;align-items:center;gap:2px;padding:4px;
+  background:color-mix(in srgb,var(--panel) 92%,transparent);
+  border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 8px 26px -16px var(--shadow);backdrop-filter:blur(10px)
+}
+.theme-switcher button{
+  border:0;background:transparent;color:var(--muted);cursor:pointer;
+  padding:7px 10px;border-radius:10px;font:600 10px/1 inherit;
+  transition:.18s ease
+}
+.theme-switcher button:hover{color:var(--text);background:var(--cyan-dim)}
+.theme-switcher button.active{
+  color:var(--cyan);background:var(--cyan-dim);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--cyan) 22%,transparent)
+}
+.theme-switcher .mode-dot{font-size:12px;margin-right:3px}
+
+
+.demo-live-badge{
+  display:flex;align-items:center;gap:9px;width:max-content;margin:0 0 12px;
+  padding:7px 11px;border:1px solid var(--line);border-radius:999px;
+  background:var(--panel);color:var(--muted);font-size:10px;letter-spacing:.08em;
+  box-shadow:0 8px 25px -18px var(--shadow)
+}
+.demo-live-badge b{color:var(--text);font-weight:700;letter-spacing:.05em}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 4px var(--cyan-dim),0 0 14px var(--cyan);animation:livePulse 1.4s infinite}
+@keyframes livePulse{50%{opacity:.45;box-shadow:0 0 0 7px transparent,0 0 7px var(--cyan)}}
+
+/* Modern scan animation */
+.browser{position:relative;overflow:hidden}
+.browser::after{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:0;
+  background:linear-gradient(180deg,transparent 0%,color-mix(in srgb,var(--cyan) 9%,transparent) 48%,transparent 52%);
+}
+.browser.scanning::after{opacity:1;animation:viewportScan 1.25s linear infinite}
+@keyframes viewportScan{0%{transform:translateY(-100%)}100%{transform:translateY(100%)}}
+.scanline.run{box-shadow:0 0 14px var(--cyan),0 0 34px var(--cyan);animation:scanBeam 1.15s ease-in-out infinite}
+@keyframes scanBeam{0%{opacity:.2;transform:translateY(0)}50%{opacity:1}100%{opacity:.2;transform:translateY(120px)}}
+.det.show{animation:detIn .32s ease both}
+@keyframes detIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.det.active{animation:detActive .9s ease-in-out infinite}
+@keyframes detActive{50%{filter:drop-shadow(0 0 7px var(--cyan))}}
+
+/* ================================================================
+   UI POLISH v2 — softer geometry, richer depth, tactile interactions
+   (visual refinements only; no structure/content/logic changed)
+   ================================================================ */
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+*::-webkit-scrollbar{width:9px;height:9px}
+*::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+::selection{background:var(--cyan-dim);color:var(--text)}
+
+body{
+  letter-spacing:.01em;
+  background-image:
+    radial-gradient(circle at 15% -5%, var(--cyan-dim), transparent 42%),
+    radial-gradient(circle at 92% 8%, var(--amber-dim), transparent 38%),
+    radial-gradient(circle at 50% 120%, var(--cyan-dim), transparent 45%);
+}
+
+.brand h1{letter-spacing:-0.025em;font-weight:700}
+.brand-text .san{letter-spacing:.03em}
+.tagline{letter-spacing:.005em}
+
+.brand-logo-wrap{
+  border-radius:20px;
+  box-shadow:0 14px 32px -16px var(--cyan),inset 0 0 22px rgba(255,255,255,.05);
+  transition:transform .3s cubic-bezier(.2,.8,.2,1);
+}
+.brand-logo-wrap:hover{transform:translateY(-2px) rotate(-2deg)}
+
+.chip{
+  border-radius:999px;
+  box-shadow:0 10px 24px -18px var(--shadow);
+  transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease;
+}
+.chip:hover{border-color:color-mix(in srgb,var(--cyan) 40%,var(--line));transform:translateY(-1px)}
+
+.theme-switcher{border-radius:16px}
+
+.demo-live-badge{
+  border-radius:999px;
+  box-shadow:0 12px 30px -20px var(--shadow), inset 0 0 0 1px color-mix(in srgb,var(--cyan) 10%,transparent);
+}
+
+.privacy-bar{
+  border-radius:18px;
+  box-shadow:0 20px 46px -30px var(--shadow);
+}
+.privacy-controls .mode{border-radius:9px;transition:.2s ease}
+.privacy-controls .mode:hover{border-color:color-mix(in srgb,var(--cyan) 45%,var(--line))}
+
+.browser,.agent,.arch{
+  border-radius:18px;
+  box-shadow:0 30px 70px -36px var(--shadow), 0 2px 0 rgba(255,255,255,.02) inset;
+  transition:box-shadow .3s ease, transform .3s ease;
+}
+.browser:hover,.agent:hover{box-shadow:0 36px 84px -34px var(--shadow), 0 2px 0 rgba(255,255,255,.03) inset}
+
+.chrome-top{border-radius:18px 18px 0 0}
+.site-nav{border-bottom:1px solid var(--line-soft)}
+.site-links span{transition:color .15s ease;cursor:default}
+.site-links span:hover{color:var(--text)}
+.login-pill{transition:.18s ease;cursor:default}
+.login-pill:hover{border-color:var(--cyan);color:var(--cyan)}
+
+.search-card{
+  border-radius:16px;
+  box-shadow:0 22px 46px -30px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.02);
+}
+.search-card h2{letter-spacing:-0.01em}
+
+.field .box{
+  border-radius:10px;
+  transition:border-color .2s ease, box-shadow .2s ease, transform .12s ease;
+}
+.field .box:not(.select):hover{border-color:color-mix(in srgb,var(--cyan) 55%,var(--field-line));box-shadow:0 0 0 3px var(--cyan-dim)}
+
+.swap-btn{transition:transform .3s cubic-bezier(.2,.8,.2,1),background .2s ease,color .2s ease}
+.swap-btn:hover{transform:rotate(180deg);background:var(--cyan-dim);color:var(--cyan)}
+
+.btn-primary{
+  border-radius:11px;
+  background:linear-gradient(135deg,var(--cyan),color-mix(in srgb,var(--cyan) 55%,#2C8879));
+  box-shadow:0 16px 34px -18px color-mix(in srgb,var(--cyan) 60%,transparent);
+  transition:transform .18s ease,box-shadow .18s ease,filter .18s ease;
+  letter-spacing:.01em;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 20px 40px -16px color-mix(in srgb,var(--cyan) 70%,transparent);filter:brightness(1.05)}
+.btn-primary:active{transform:translateY(0)}
+
+.train-card{
+  border-radius:13px;
+  box-shadow:0 14px 30px -22px var(--shadow);
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+.train-card:hover{transform:translateY(-2px);box-shadow:0 18px 36px -20px var(--shadow)}
+
+.privacy-demo{border-radius:12px;overflow:hidden}
+.pi-badge{border-radius:7px}
+
+.agent-head{border-radius:18px 18px 0 0}
+.status-pill{border-radius:999px}
+.step{border-radius:11px;transition:background .25s ease,transform .2s ease}
+.step.active{transform:translateX(2px)}
+
+button.run{
+  border-radius:11px;
+  box-shadow:0 16px 32px -18px color-mix(in srgb,var(--cyan) 55%,transparent);
+  transition:transform .18s ease,box-shadow .18s ease,opacity .15s ease;
+}
+button.run:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 20px 38px -16px color-mix(in srgb,var(--cyan) 65%,transparent)}
+button.run:active:not(:disabled){transform:translateY(0)}
+button.reset{border-radius:11px;transition:.2s ease}
+button.reset:hover:not(:disabled){transform:translateY(-1px);border-color:color-mix(in srgb,var(--cyan) 40%,var(--line))}
+
+.pl-node{transition:background .2s ease,transform .2s ease}
+.pl-node:hover{background:var(--panel-2)}
+.pl-node:first-child{border-radius:14px 0 0 14px}
+.pl-node:last-child{border-radius:0 14px 14px 0}
+
+.perf-cell{transition:background .2s ease}
+.perf-cell:hover{background:var(--panel)}
+
+.cursor svg{filter:drop-shadow(0 3px 6px rgba(0,0,0,.55)) drop-shadow(0 0 8px var(--amber))}
+
+@media (prefers-reduced-motion: reduce){
+  .swap-btn:hover,.brand-logo-wrap:hover,.btn-primary:hover,button.run:hover,.train-card:hover{transform:none}
+}
+
+/* ================================================================
+   UI POLISH v3 — softer, calmer, "soothing" pass
+   (colors/geometry/motion only; structure, content and JS untouched)
+   ================================================================ */
+html,body{scroll-behavior:smooth}
+body{
+  letter-spacing:.012em; line-height:1.5;
+  background-image:
+    radial-gradient(circle at 12% -8%, var(--cyan-dim), transparent 46%),
+    radial-gradient(circle at 90% 4%, var(--amber-dim), transparent 40%),
+    radial-gradient(circle at 50% 128%, var(--cyan-dim), transparent 48%);
+  background-size:180% 180%, 180% 180%, 180% 180%;
+  animation:ambientDrift 26s ease-in-out infinite alternate;
+}
+@keyframes ambientDrift{
+  0%{background-position:0% 0%, 100% 0%, 50% 100%}
+  100%{background-position:6% 4%, 92% 8%, 46% 96%}
+}
+
+/* gentle glass feel on the big surfaces */
+.browser,.agent,.arch,.search-card,.privacy-bar,.demo-live-badge,.chip,.theme-switcher{
+  backdrop-filter:blur(14px) saturate(1.05);
+  -webkit-backdrop-filter:blur(14px) saturate(1.05);
+}
+.browser,.agent{background:color-mix(in srgb,var(--panel) 92%,transparent)}
+.chrome-top,.agent-head,.task-row,.ctrl,.privacy-demo-head{background:color-mix(in srgb,var(--panel-2) 88%,transparent)}
+
+/* softer, longer, calmer easing everywhere */
+*{ }
+.btn-primary,button.run,button.reset,.swap-btn,.field .box,.chip,.train-card,
+.brand-logo-wrap,.step,.pl-node,.perf-cell,.mode,.login-pill,.site-links span{
+  transition-timing-function:cubic-bezier(.22,.75,.28,1) !important;
+  transition-duration:.32s !important;
+}
+
+/* quieter, more diffused shadows for a restful, less "techy-harsh" feel */
+.browser,.agent,.arch{ box-shadow:0 26px 60px -34px var(--shadow), 0 1px 0 rgba(255,255,255,.02) inset }
+.search-card{ box-shadow:0 18px 40px -28px var(--shadow) }
+.train-card{ box-shadow:0 10px 24px -20px var(--shadow) }
+.btn-primary{ box-shadow:0 14px 28px -16px color-mix(in srgb,var(--cyan) 45%,transparent) }
+button.run{ box-shadow:0 14px 26px -16px color-mix(in srgb,var(--cyan) 40%,transparent) }
+
+/* softer focus / hover glow, easier on the eyes than a hard ring */
+.field .box:not(.select):hover,.field .box:not(.select):focus-within{
+  border-color:color-mix(in srgb,var(--cyan) 45%,var(--field-line));
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--cyan) 10%,transparent);
+}
+button.run:focus-visible,button.reset:focus-visible{
+  outline:2px solid color-mix(in srgb,var(--cyan) 55%,transparent);outline-offset:3px;
+}
+
+/* calmer typography rhythm */
+.search-card h2{font-weight:600}
+.p-sub,.task-row .k,.field label{opacity:.9}
+.tagline{max-width:460px}
+
+/* soften the amber "attention" moments so they read as warm, not alarming */
+.det.active{box-shadow:0 0 0 3px var(--amber-dim), 0 0 18px color-mix(in srgb,var(--amber) 55%,transparent) !important}
+.status-pill.running{background:var(--amber-dim)}
+
+/* light theme: keep the same calm ambience, gently */
+html[data-theme="light"] body{
+  background-image:
+    radial-gradient(circle at 12% -8%, var(--cyan-dim), transparent 50%),
+    radial-gradient(circle at 90% 4%, var(--amber-dim), transparent 46%),
+    radial-gradient(circle at 50% 128%, var(--cyan-dim), transparent 52%);
+}
+html[data-theme="light"] .browser,html[data-theme="light"] .agent{background:color-mix(in srgb,var(--panel) 97%,transparent)}
+
+@media (prefers-reduced-motion: reduce){
+  body{animation:none}
+  html,body{scroll-behavior:auto}
+}
+
+/* ================================================================
+   THEME TOGGLE — segmented sliding pill
+   (same 3 buttons, same ids, same setTheme()/active-class logic;
+   only the visual presentation changes)
+   ================================================================ */
+.theme-switcher{
+  position:relative;
+  display:inline-flex;
+  align-items:stretch;
+  gap:0;
+  padding:4px;
+  border-radius:999px;
+  background:color-mix(in srgb,var(--panel-2) 88%,transparent);
+  border:1px solid var(--line);
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.18), 0 10px 24px -18px var(--shadow);
+  overflow:hidden;
+}
+.theme-switcher::before{
+  content:"";
+  position:absolute;
+  top:4px; left:4px;
+  width:74px; height:calc(100% - 8px);
+  border-radius:999px;
+  background:linear-gradient(135deg,var(--cyan),color-mix(in srgb,var(--cyan) 55%,#2C8879));
+  box-shadow:0 8px 18px -8px color-mix(in srgb,var(--cyan) 55%,transparent);
+  transition:transform .38s cubic-bezier(.22,.9,.32,1);
+  z-index:0;
+}
+.theme-switcher:has(#themeAuto.active)::before{transform:translateX(0)}
+.theme-switcher:has(#themeLight.active)::before{transform:translateX(74px)}
+.theme-switcher:has(#themeDark.active)::before{transform:translateX(148px)}
+
+.theme-switcher button{
+  position:relative;
+  z-index:1;
+  width:74px;
+  padding:7px 0;
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  font:600 10.5px/1 inherit;
+  letter-spacing:.02em;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  border-radius:999px;
+  cursor:pointer;
+  transition:color .3s ease;
+}
+.theme-switcher button:hover{color:var(--text);background:transparent}
+.theme-switcher button.active{color:var(--button-text)}
+.theme-switcher button.active:hover{color:var(--button-text)}
+.theme-switcher .mode-dot{font-size:12px;margin-right:0}
+
+/* graceful fallback for browsers without :has() support */
+@supports not selector(:has(a)){
+  .theme-switcher::before{display:none}
+  .theme-switcher button.active{background:var(--cyan-dim);color:var(--cyan)}
+}
+
+@media (max-width:600px){
+  .theme-switcher button{width:56px;font-size:9.5px}
+  .theme-switcher::before{width:56px}
+  .theme-switcher:has(#themeLight.active)::before{transform:translateX(56px)}
+  .theme-switcher:has(#themeDark.active)::before{transform:translateX(112px)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="brand-logo-wrap" aria-label="Drishti logo">
+        <img class="brand-logo" src="assets/logo.png" alt="Drishti eye logo">
+      </div>
+      <div class="brand-text">
+        <h1 class="display">Drishti<span class="san">दृष्टि · on-device visual perception</span></h1>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+      <div class="theme-switcher" aria-label="Theme selection">
+        <button id="themeAuto" title="Follow system theme"><span class="mode-dot">◐</span>Auto</button>
+        <button id="themeLight" title="Light theme"><span class="mode-dot">☀</span>Light</button>
+        <button id="themeDark" title="Dark theme"><span class="mode-dot">☾</span>Dark</button>
+      </div>
+      <span class="chip"><b>SIH26171</b><span class="sep">·</span>ISRO<span class="sep">·</span>Smart Automation</span>
+    </div>
+  </header>
+
+  <p class="tagline">A privacy-preserving browser vision agent: local visual perception and PII protection happen before any optional server reasoning. Only sanitized, anonymized visual context is allowed to leave the client.</p>
+
+  <div class="demo-live-badge"><span class="live-dot"></span><span>LIVE DEMO</span><b>PIXEL → PERCEIVE → PROTECT → ACT</b></div>
+<div class="privacy-bar">
+    <div>
+      <div class="privacy-title">Privacy shield</div>
+      <div class="privacy-sub">Sensitive content is detected locally before any optional server reasoning.</div>
+    </div>
+    <div class="privacy-controls">
+      <button class="mode active" id="modePrivate" type="button">PRIVATE · LOCAL</button>
+      <button class="mode" id="modeHybrid" type="button">HYBRID · SANITIZED</button>
+      <span class="privacy-state" id="privacyState">● network blocked</span>
+    </div>
+  </div>
+
+
+  <div class="stage" style="margin-top:28px;">
+    <!-- BROWSER MOCK -->
+    <div class="browser">
+      <div class="chrome-top">
+        <div class="traffic"><i></i><i></i><i></i></div>
+        <div class="tab"><span class="favicon"></span><span>Railyatra – Search Trains</span><span class="close">&times;</span></div>
+      </div>
+      <div class="chrome-bottom">
+        <div class="nav-ic">&#8592; &#8594; &#8635;</div>
+        <div class="urlbar"><span class="lock">&#128274;</span><span>railyatra.example.in/search</span></div>
+        <div class="star">&#9734;</div>
+      </div>
+
+      <div class="page" id="page">
+        <div class="scan-line" id="scanline"></div>
+
+        <div class="site-nav">
+          <div class="site-logo">RAIL<b>YATRA</b></div>
+          <div class="site-links"><span>Trains</span><span>PNR Status</span><span>Live Status</span></div>
+          <div class="login-pill">Login</div>
+        </div>
+
+        <div class="card-wrap">
+          <div class="search-card">
+            <h2>Book train tickets</h2>
+            <p class="p-sub">Search across 12,400+ trains, real-time availability</p>
+
+            <div class="row-2">
+              <div class="field"><label>From</label><div class="box" id="box-from">Kolkata (KOL)</div></div>
+              <div class="swap"><div class="swap-btn">&#8646;</div></div>
+              <div class="field"><label>To</label><div class="box empty" id="box-to">Enter destination</div></div>
+            </div>
+            <div class="row-2b">
+              <div class="field"><label>Date of journey</label><div class="box" id="box-date">18 Sep 2026</div></div>
+              <div class="field"><label>Class</label><div class="box select" id="box-class"><span>AC 3 Tier (3A)</span><span class="chev">&#9662;</span></div></div>
+            </div>
+            <button class="btn-primary" id="btn-submit">Search Trains</button>
+
+            <div class="privacy-demo" id="privacyDemo">
+              <div class="privacy-demo-head">
+                <span>LOCAL PRIVACY SCAN</span>
+                <span id="privacyScanStatus">waiting</span>
+              </div>
+              <div class="privacy-item">
+                <span class="pi-label">Email</span>
+                <span class="pi-value" id="emailValue">user@example.com</span>
+                <span class="pi-badge" id="emailBadge">PII</span>
+              </div>
+              <div class="privacy-item">
+                <span class="pi-label">Password</span>
+                <span class="pi-value password" id="passwordValue">••••••••••••</span>
+                <span class="pi-badge critical" id="passwordBadge">SECRET</span>
+              </div>
+              <div class="privacy-item">
+                <span class="pi-label">Phone</span>
+                <span class="pi-value" id="phoneValue">+91 98765 43210</span>
+                <span class="pi-badge" id="phoneBadge">PII</span>
+              </div>
+              <div class="sanitized" id="sanitizedPayload">SANITIZED PAYLOAD: not transmitted</div>
+            </div>
+
+
+            <div class="results" id="results">
+              <div class="r-label">4 trains found</div>
+              <div class="train-card" id="tc1">
+                <div><div class="tc-name">12302 · Kolkata Rajdhani</div><div class="tc-time">16:50 KOL → 10:00 NDLS · 17h 10m</div></div>
+                <div class="tc-right"><div class="tc-price">₹2,190</div><div class="tc-avail">3A · Available 34</div></div>
+              </div>
+              <div class="train-card" id="tc2">
+                <div><div class="tc-name">12314 · Sealdah Duronto</div><div class="tc-time">18:05 KOL → 10:30 NDLS · 16h 25m</div></div>
+                <div class="tc-right"><div class="tc-price">₹1,975</div><div class="tc-avail">3A · Available 12</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cursor" id="cursor">
+          <svg class="cursor-icon" width="16" height="16" viewBox="0 0 16 16"><path d="M1 1L1 13.5L4.5 10.5L6.8 15L9 14L6.8 9.3L11 9.3Z" fill="#F0A93A" stroke="currentColor" stroke-width="1"/></svg>
+        </div>
+      </div>
+
+      <div class="perf-strip">
+        <div class="perf-cell"><div class="k">Client runtime</div><div class="v">WebGPU / WASM</div></div>
+        <div class="perf-cell"><div class="k">Inference</div><div class="v cyan" id="latency">—</div></div>
+        <div class="perf-cell"><div class="k">Elements detected</div><div class="v cyan" id="detcount">—</div></div>
+        <div class="perf-cell"><div class="k">Network calls</div><div class="v" id="networkCalls">0</div></div>
+      </div>
+    </div>
+
+    <!-- AGENT PANEL -->
+    <div class="agent">
+      <div class="agent-head">
+        <span class="lbl">Drishti agent</span>
+        <div class="status-row">
+          <span class="timer" id="timer">0.0s</span>
+          <span class="status-pill" id="statuspill">idle</span>
+        </div>
+      </div>
+      <div class="task-row">
+        <div class="k">Task</div>
+        <div class="task">"Search a train from Kolkata to Delhi, 3A class, for 18 Sep"</div>
+      </div>
+      <div class="steps" id="steps">
+        <div class="step" data-step="0"><div class="num">1</div><div class="body">
+          <div class="t">Capture current screen / tab</div><div class="m">visual context captured locally</div></div></div>
+        <div class="step" data-step="1"><div class="num">2</div><div class="body">
+          <div class="t">Run local ViT / equivalent vision model</div><div class="m">screen structure + sensitive/PII regions</div></div></div>
+        <div class="step" data-step="2"><div class="num">3</div><div class="body">
+          <div class="t">Prepare sanitized visual context</div><div class="m">PII is removed before any network request</div></div></div>
+        <div class="step" data-step="3"><div class="num">4</div><div class="body">
+          <div class="t">Server returns actionable browser command</div><div class="m">local extension executes the command</div></div></div>
+        <div class="step" data-step="4"><div class="num">5</div><div class="body">
+          <div class="t">Re-perceive screen after action</div><div class="m">verify next UI state</div></div></div>
+        <div class="step" data-step="5"><div class="num">6</div><div class="body">
+          <div class="t">Execute final action — task complete</div><div class="m">browser state updated; loop completes</div></div></div>
+      </div>
+      <div class="ctrl">
+        <button class="run" id="runBtn">Run agent</button>
+        <button class="reset" id="resetBtn">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  
+  <section class="arch" id="sihRuntime" style="margin-top:18px;">
+    <h3>SIH Runtime Controls</h3>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;">
+      <div class="metric">
+        <div class="k">Browser APIs</div>
+        <div class="v cyan" id="gpuStatus">checking…</div>
+        <div class="small">WebGPU availability</div>
+      </div>
+      <div class="metric">
+        <div class="k">Local privacy gate</div>
+        <div class="v cyan" id="privacyGateStatus">ARMED</div>
+        <div class="small">blocks raw visual payload in Private mode</div>
+      </div>
+      <div class="metric">
+        <div class="k">Redaction boxes</div>
+        <div class="v cyan" id="redactionCount">0</div>
+        <div class="small">detected sensitive regions</div>
+      </div>
+      <div class="metric">
+        <div class="k">Server endpoint</div>
+        <div class="v" id="serverStatus">MOCK / OFF</div>
+        <div class="small">real endpoint can be configured below</div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <button class="run" type="button" id="captureScreenBtn">Capture Screen / Tab</button>
+      <button class="reset" type="button" id="runPrivacyBtn">Run Local PII Redaction</button>
+      <input id="serverEndpoint" value="/api/agent" placeholder="Server endpoint — defaults to this deployment's /api/agent"
+             style="flex:1;min-width:280px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);color:var(--text);">
+      <button class="reset" type="button" id="sendSanitizedBtn">Send Sanitized Context</button>
+    </div>
+
+    <div id="captureStatus" style="margin-top:10px;font:10px 'SF Mono',monospace;color:var(--muted);">
+      Ready. Screen capture is optional; the built-in Railyatra task remains available as the deterministic SIH demo.
+    </div>
+  </section>
+
+  <section class="arch" id="sihStatement" style="margin-top:18px;">
+    <details>
+      <summary style="cursor:pointer;font-weight:800;">SIH 2026 Problem Statement — exact supplied description</summary>
+      <div style="margin-top:14px;display:grid;gap:14px;font-size:11px;line-height:1.65;color:var(--muted);">
+        <div><b style="color:var(--text);">Background</b><p>
+        AI agents are becoming omnipresent in the current era and can play an important role in our digital interactions. If an agentic AI pipeline has access to our visual context, screen states, they can assist users in complex workflows and automate many tasks. Most of the agentic AI pipelines are deployed on server side which limits the type to data that a user can share with it. It would open a new dimension of possibilities, if a local agent is deployed on user machine particularly browser which can eliminate the need to share the sensitive data with the server. Local system generally has fewer resources than server and is unable to host a full-fledged pipeline therefore only the non-sensitive data such as structure of the screen, application fields etc can be sent to server for processing.
+        </p><p>
+        Modern browser APIs (such as WebGPU and WebAssembly) and local inference libraries (like ONNX Runtime Web and Transformers.js) have unlocked the ability to run lightweight machine learning models directly on the client. The aim is to bridge these two environments: leveraging the reasoning power of cloud or server based AI while strictly enforcing data privacy at the client side.
+        </p></div>
+
+        <div><b style="color:var(--text);">Description</b><p>
+        Participants are required to build a privacy-preserving vision agent which runs on browser. This involves implementing a client-side architecture where a local Vision Transformer (ViT) or equivalent computer vision model 'reads' the user's screen and takes decision based on that. If it requires the visual context to be sent to server, it shall sanitize the sensitive/PII data using DOM tags or any other method, before any network request is made. It should dynamically detect and redact sensitive elements. For example, blurring faces, blacking out passwords, and masking PII etc. Only this anonymized, unidentifiable data should be transmitted to the central server which should be aware for this redaction scheme and can process data accordingly. The server will then process the sanitized context and return actionable commands for the browser agent to execute. Participants must balance the trade-offs between inference latency and the accuracy.
+        </p></div>
+
+        <div><b style="color:var(--text);">Expected Solution</b><p>
+        A successful submission should include a working prototype consisting of client side extension and server that demonstrates the following:
+        </p>
+        <p><b>Client-side (extension/JS) running in popular browsers (chrome, Firefox) components:</b></p>
+        <ul>
+          <li>Local Vision Processing: Implementation of a client-side vision model running in the browser (e.g., via WebGPU) that evaluates the current screen state.</li>
+          <li>Privacy Preserving Filter: A mechanism for sanitizing sensitive or personal visual data. This can be achieved through local bounding-box redaction, semantic obfuscation, masking etc. This should be clearly demonstrated.</li>
+        </ul>
+        <p><b>Server-side implementation components:</b></p>
+        <ul>
+          <li>Server Side Integration: The transmission of the anonymized visual context to a centralized LLM/VLM, which successfully interprets the sanitized data and returns the response which may be processed data to be again ingested by local client or an UI action (e.g., 'click the submit button,' 'scroll down') that the local client executes.</li>
+          <li>Participants are free to use any offline deployable (open-source/open-weights) model on server side. During SIH they can use cloud hosted version of these. An end-to-end task assisting the user should be demonstrated.</li>
+        </ul></div>
+
+        <div><b style="color:var(--text);">Evaluation will be done on the following metrics:</b>
+        <ol>
+          <li>Accuracy of visual context from screen – 25%</li>
+          <li>Recall and precision for detection of sensitive/PII data – 20%</li>
+          <li>Precision of redaction – 20%</li>
+          <li>Client side resource utilization – 20%</li>
+          <li>Overall end-to-end latency of the provided task – 15%</li>
+        </ol></div>
+      </div>
+    </details>
+  </section>
+
+<div class="demo-explainer" style="margin-top:18px;padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:var(--panel);box-shadow:0 10px 35px -24px var(--shadow)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div><div style="font-weight:700;font-size:13px">What this demo is showing</div>
+        <div style="margin-top:5px;color:var(--muted);font-size:11px;line-height:1.5">The agent captures the visible page, scans pixels, draws detection boxes, protects sensitive information locally, grounds the instruction, then performs the browser action.</div></div>
+        <span style="padding:6px 9px;border-radius:999px;background:var(--cyan-dim);color:var(--cyan);font-size:10px;font-weight:700">SIMULATION / PROTOTYPE</span>
+      </div>
+    </div>
+<div class="arch">
+    <h3>SIH Architecture — Local Vision → Privacy Filter → Server Reasoning → Browser Action</h3>
+    <div class="pipeline">
+      <div class="pl-node"><div class="n">01</div><div class="t">Capture</div><div class="d">Browser extension captures the visible screen/tab state. The design is centered on visual context rather than sending raw sensitive content to the server.</div></div>
+      <div class="arrow">&#8594;</div>
+      <div class="pl-node"><div class="n">02</div><div class="t">Perceive</div><div class="d">A local ViT/equivalent vision model is intended to run in-browser using WebGPU/WebAssembly or an equivalent local runtime.</div></div>
+      <div class="arrow">&#8594;</div>
+      <div class="pl-node"><div class="n">03</div><div class="t">Ground</div><div class="d">The local perception layer identifies screen structure and candidate UI elements needed for the requested task.</div></div>
+      <div class="arrow">&#8594;</div>
+      <div class="pl-node"><div class="n">04</div><div class="t">Protect</div><div class="d">Sensitive/PII regions are detected locally and redacted before any network request. Only sanitized context is eligible for transmission.</div></div>
+      <div class="arrow">&#8594;</div>
+      <div class="pl-node"><div class="n">05</div><div class="t">Act</div><div class="d">The server returns an actionable command such as CLICK or SCROLL; the local extension executes it and re-perceives the screen.</div></div>
+    </div>
+  </div>
+
+  <footer><span class="chip">Smart India Hackathon 2026 <span class="sep">·</span> <b>SIH26171</b> <span class="sep">·</span> Indian Space Research Organisation</span></footer>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
